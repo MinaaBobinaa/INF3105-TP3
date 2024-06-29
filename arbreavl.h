@@ -63,6 +63,7 @@ class ArbreAVL {
     Noeud(const T&);
     T contenu;
     int equilibre;
+    int size; // taille du sous-arbre dont ce nœud est la racine
     Noeud *gauche, *droite;
   };
 
@@ -285,22 +286,19 @@ ArbreAVL<T>& ArbreAVL<T>::operator=(const ArbreAVL& autre) {
 
 template<class T>
 void ArbreAVL<T>::enlever(const T& element) {
-  // À compléter.
   enlever(racine, element);
 }
+
 template <class T>
 bool ArbreAVL<T>::enlever(Noeud *&noeud, const T &element)
 {
-    if (noeud == nullptr) return false; // Si le noeud est nul, l'élément n'existe pas
+    if (noeud == nullptr) return false;
 
     if (element < noeud->contenu)
     {
         if (enlever(noeud->gauche, element))
         {
-            // Mise à jour de l'équilibre si nécessaire
             noeud->equilibre--;
-            // Ajustement de l'équilibre de l'arbre (ajusterEquilibre non inclus ici)
-            // return ajusterEquilibre(noeud);
             return true;
         }
     }
@@ -308,14 +306,11 @@ bool ArbreAVL<T>::enlever(Noeud *&noeud, const T &element)
     {
         if (enlever(noeud->droite, element))
         {
-            // Mise à jour de l'équilibre si nécessaire
             noeud->equilibre++;
-            // Ajustement de l'équilibre de l'arbre (ajusterEquilibre non inclus ici)
-            // return ajusterEquilibre(noeud);
             return true;
         }
     }
-    else // element == noeud->contenu
+    else
     {
         if (noeud->gauche == nullptr && noeud->droite == nullptr)
         {
@@ -346,15 +341,12 @@ bool ArbreAVL<T>::enlever(Noeud *&noeud, const T &element)
             if (enlever(noeud->droite, successeur->contenu))
             {
                 noeud->equilibre++;
-                // Ajustement de l'équilibre de l'arbre (ajusterEquilibre non inclus ici)
-                // return ajusterEquilibre(noeud);
                 return true;
             }
         }
     }
     return false;
 }
-
 
 
 // Code fourni pour afficher l'arbre.
@@ -503,46 +495,46 @@ T& ArbreAVL<T>::operator[](const Iterateur& iterateur) {
   return iterateur.courant->contenu;
 }
 
+// Retourne le i ième élément du parcours inordre de l'arbre.
 template<class T>
 const T& ArbreAVL<T>::operator[](int index) const {
-  assert(index >= 0 && index < compter());
-  return elementAt(racine, index);
+    assert(index >= 0 && index < compter());
+    return elementAt(racine, index);
 }
-
 
 
 template<class T>
 T& ArbreAVL<T>::operator[](int index) {
-  assert(index >= 0 && index < compter());
-  return elementAt(racine, index);
+    assert(index >= 0 && index < compter());
+    return elementAt(racine, index);
 }
 
 template<class T>
 const T& ArbreAVL<T>::elementAt(Noeud* noeud, int index) const {
-  assert(noeud != nullptr);
-  int gaucheCount = noeud->gauche ? compter(noeud->gauche) : 0;
+    assert(noeud != nullptr);
+    int gaucheCount = noeud->gauche ? compter(noeud->gauche) : 0;
 
-  if (index < gaucheCount) {
-    return elementAt(noeud->gauche, index);
-  } else if (index > gaucheCount) {
-    return elementAt(noeud->droite, index - gaucheCount - 1);
-  } else {
-    return noeud->contenu;
-  }
+    if (index < gaucheCount) {
+        return elementAt(noeud->gauche, index);
+    } else if (index > gaucheCount) {
+        return elementAt(noeud->droite, index - gaucheCount - 1);
+    } else {
+        return noeud->contenu;
+    }
 }
 
 template<class T>
 T& ArbreAVL<T>::elementAt(Noeud* noeud, int index) {
-  assert(noeud != nullptr);
-  int gaucheCount = noeud->gauche ? compter(noeud->gauche) : 0;
+    assert(noeud != nullptr);
+    int gaucheCount = noeud->gauche ? compter(noeud->gauche) : 0;
 
-  if (index < gaucheCount) {
-    return elementAt(noeud->gauche, index);
-  } else if (index > gaucheCount) {
-    return elementAt(noeud->droite, index - gaucheCount - 1);
-  } else {
-    return noeud->contenu;
-  }
+    if (index < gaucheCount) {
+        return elementAt(noeud->gauche, index);
+    } else if (index > gaucheCount) {
+        return elementAt(noeud->droite, index - gaucheCount - 1);
+    } else {
+        return noeud->contenu;
+    }
 }
 
 template<class T>
@@ -628,7 +620,9 @@ typename ArbreAVL<T>::Iterateur& ArbreAVL<T>::Iterateur::operator=(
 }
 
 
-
+ // Retourne un nouvel arbre AVL contenant les éléments inverses de l'arbre.
+    // Ex.: si l'arbre contient 1, -2 et 3, le nouvel arbre doit contenir -1, 2 et -3.
+    // On suppose que l'opérateur - est défini pour le type T.
 template<class T>
 ArbreAVL<T> ArbreAVL<T>::arbreInverse() const {
    ArbreAVL<T> arbreInverse;
@@ -648,13 +642,45 @@ ArbreAVL<T> ArbreAVL<T>::arbreInverse() const {
 
 
 
-
-
-
+  // Retourne un nouvel arbre AVL représentant la différence symétrique
+    // entre l'arbre courant et l'arbre passé en paramètre.
+    // La différence symétrique est l'ensemble des éléments qui sont
+    // dans un des deux arbres, mais pas dans les deux.
 template<class T>
-ArbreAVL<T> ArbreAVL<T>::differenceSymetrique(const ArbreAVL&) const {
-  // À compléter.
-  return ArbreAVL<T>();
+ArbreAVL<T> ArbreAVL<T>::differenceSymetrique(const ArbreAVL& autre) const {
+    ArbreAVL<T> resultat;
+
+    Iterateur it1 = debut();
+    Iterateur it2 = autre.debut();
+
+    while (it1 && it2) {
+        if (*it1 < *it2) {
+            resultat.inserer(*it1);
+            ++it1;
+        } else if (*it2 < *it1) {
+            resultat.inserer(*it2);
+            ++it2;
+        } else {
+            ++it1;
+            ++it2;
+        }
+    }
+
+    while (it1) {
+        resultat.inserer(*it1);
+        ++it1;
+    }
+
+    while (it2) {
+        resultat.inserer(*it2);
+        ++it2;
+    }
+
+    return resultat;
 }
+
+
+
+
 
 #endif
